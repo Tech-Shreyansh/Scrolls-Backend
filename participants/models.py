@@ -3,6 +3,8 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.core.validators import EmailValidator
+from django.db.models.signals import pre_save,post_save
+from django.dispatch import receiver
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -61,3 +63,9 @@ class Participant(AbstractBaseUser):
 
     def __str__(self):
         return self.email
+
+@receiver(post_save, sender = Participant)
+def generate_member_id(sender, **kwargs):
+    member = kwargs['instance']
+    yos = member.year_of_study
+    Participant.objects.filter(id=member.id).update(member_id=yos*1000000 + member.id)
