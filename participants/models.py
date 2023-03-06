@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
 from django.core.validators import EmailValidator
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
-
+from .mail import send_member_id
 # Create your models here.
 class MyUserManager(BaseUserManager):
     def create_user(self, email, name,password=None):
@@ -50,13 +50,15 @@ class Participant(AbstractBaseUser):
         unique=True,
         validators=[EmailValidator()])
     name = models.CharField(max_length=150, null=False , blank=False)
-    gender = models.CharField(max_length=1, choices=GENDER, null=False , blank=False)
+    gender = models.CharField(max_length=10,choices=GENDER, null=False , blank=False)
     college = models.CharField(max_length=350, null=False , blank=False)
     course = models.CharField(max_length=150, null=False , blank=False)
     branch = models.CharField(max_length=150, blank=True)
+    mobile = models.PositiveIntegerField(null=False , blank=False)
     year_of_study = models.PositiveIntegerField(null=False , blank=False)
     member_id = models.CharField(max_length=250, blank=True)
-
+    referral_code = models.CharField(max_length=250, blank=True)
+    is_ambassador = models.BooleanField(default=False)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
@@ -64,8 +66,15 @@ class Participant(AbstractBaseUser):
     def __str__(self):
         return self.email
 
+# class Team(models.Model):
+#     def post(self, request):
+#         name = models.CharField(max_length=150, null=False , blank=False)
+
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):
     member = kwargs['instance']
     yos = member.year_of_study
-    Participant.objects.filter(id=member.id).update(member_id=yos*1000000 + member.id)
+    member_id = (yos*1000000 + member.id)
+    referral = member.email[0:3]+str(member_id)
+    Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
+    # send_member_id(member.email,member_id)
