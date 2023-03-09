@@ -81,7 +81,7 @@ class Team(models.Model):
     password = models.CharField(max_length=10000000000,null=True, blank=False)
 
     def __str__(self):
-        return self.name
+        return self.name + "~" + str(self.size)
 
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):
@@ -93,3 +93,10 @@ def generate_member_id(sender, **kwargs):
     if member.is_ambassador == True:
         print(referral)
     # send_member_id(member.email,member_id)
+
+@receiver(post_save, sender = Team)
+def generate_team_id(sender, **kwargs):
+    team = kwargs['instance']
+    size= team.size
+    team_id = size*100000+team.id
+    Team.objects.filter(id=team.id).update(team_id=team_id)
