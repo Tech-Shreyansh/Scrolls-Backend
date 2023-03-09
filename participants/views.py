@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
+# from rest_framework_simplejwt.tokens import RefreshToken 
 
 class register(APIView):
     def post(self, request, pk):
@@ -14,7 +16,8 @@ class register(APIView):
         if user.exists():
             return Response({'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
         serializer = participant_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):   
+        if serializer.is_valid(raise_exception=True):  
+            # Participant.objects.create_user(email = request.data.get("email"),name = request.data["name"], password = request.data.get("password"))
             if pk=='1':
                 serializer.validated_data["is_ambassador"] = True
             serializer.save()
@@ -37,14 +40,15 @@ class team(APIView):
     def post(self,request):
         request.data["password"]= make_password(request.data.get("password"))
         team_size = request.data.get("size")
-        if(request.data["referral_used"][3:10]==str(request.data["leader_id"])):
-            return Response({"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
-        if team_size==3:
-            if(request.data["referral_used"][3:10]==str(request.data["member_2"])or request.data["referral_used"][3:10]==str(request.data["member_3"])):
-                return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
-        if team_size==2:
-            if(request.data["referral_used"][3:10]==str(request.data["member_2"])):
-                return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
+        if request.data.get("referral_used") is not None:
+            if(request.data["referral_used"][3:10]==str(request.data["leader_id"])):
+                return Response({"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
+            if team_size==3:
+                if(request.data["referral_used"][3:10]==str(request.data["member_2"])or request.data["referral_used"][3:10]==str(request.data["member_3"])):
+                    return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
+            if team_size==2:
+                if(request.data["referral_used"][3:10]==str(request.data["member_2"])):
+                    return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
         leader = Participant.objects.filter(member_id=request.data["leader_id"])
         if not leader.exists():
             return Response({"leader's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
@@ -73,3 +77,28 @@ class team(APIView):
                 if referral != None:
                     Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
                 return Response({'successfully registered'}, status=status.HTTP_201_CREATED)
+
+# def getTokens(user):
+#     refresh = RefreshToken.for_user(user)
+#     return {
+#         'refresh': str(refresh),
+#         'access': str(refresh.access_token),
+#     }
+ 
+class Login_user(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        print(password)
+        user = Participant.objects.filter(email__iexact = email)
+        print(user)
+        # if not user.exists():
+        #     context = {'msg':'user with this mail does not exist'}
+        #     return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=email, password=password)
+        if user is not None:
+            # token = getTokens(user)
+            return Response({'id':user.id,'msg':'Login Success'}, status=status.HTTP_200_OK)
+
+        return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
