@@ -70,16 +70,19 @@ class Participant(AbstractBaseUser):
         return self.email
 
 class Team(models.Model):
-    def post(self, request):
-        name = models.CharField(max_length=150, null=False , blank=False, unique=True)
-        size = models.PositiveIntegerField(null=False , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
-        topic = models.CharField(max_length=1500, null=False , blank=False)
-        domain = models.CharField(max_length=150, null=False , blank=False)
-        referral_used = models.CharField(max_length=15, null=False , blank=False)
-        leader_id = models.OneToOneField(Participant , null=False, blank=False)
-        member_2 = models.OneToOneField(Participant , null=False, blank=False)
-        member_3 = models.OneToOneField(Participant , null=False, blank=False)
-        password = models.CharField(max_length=10000000000, null=False, blank=False)
+    name = models.CharField(max_length=150, blank=False, null=True, unique=True)
+    size = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
+    team_id = models.CharField(max_length=250, blank=True)
+    topic = models.CharField(max_length=1500, blank=True)
+    domain = models.CharField(max_length=150, blank=True)
+    referral_used = models.CharField(max_length=15, blank=True)
+    leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
+    member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
+    member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
+    password = models.CharField(max_length=10000000000,null=True, blank=False)
+
+    def __str__(self):
+        return self.name
 
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):
