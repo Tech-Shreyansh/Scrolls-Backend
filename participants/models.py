@@ -77,4 +77,6 @@ def generate_member_id(sender, **kwargs):
     member_id = (yos*1000000 + member.id)
     referral = member.email[0:3]+str(member_id)
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
+    if member.is_ambassador == True:
+        print(referral)
     # send_member_id(member.email,member_id)
