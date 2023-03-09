@@ -60,7 +60,6 @@ class Participant(AbstractBaseUser):
     member_id = models.CharField(max_length=250, blank=True)
     referral_code = models.CharField(max_length=250, blank=True)
     is_ambassador = models.BooleanField(default=False)
-    is_registered = models.BooleanField(default=False)
     referral_count = models.PositiveIntegerField(default = 0)
     objects = MyUserManager()
 

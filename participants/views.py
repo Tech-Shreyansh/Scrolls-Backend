@@ -37,14 +37,22 @@ def check_id(participant,participant_type):
     participant = Participant.objects.filter(member_id=participant)
     if not participant.exists():
         return Response({'msg': participant_type +"'s Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-    if participant[0].is_registered == True:
-        return Response({'msg': participant_type + " is already in a team"}, status=status.HTTP_409_CONFLICT)
     return participant[0]
     
 class team(APIView):
     def post(self,request):
         request.data["password"]= make_password(request.data.get("password"))
         team_size = request.data.get("size")
+        print(request.data["referral_used"][3:10])
+        print(request.data["leader_id"])
+        if(request.data["referral_used"][3:10]==str(request.data["leader_id"])):
+            return Response({'msg':"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
+        if team_size==3:
+            if(request.data["referral_used"][3:10]==str(request.data["member_2"])or request.data["referral_used"][3:10]==str(request.data["member_3"])):
+                return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
+        if team_size==2:
+            if(request.data["referral_used"][3:10]==str(request.data["member_2"])):
+                return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
         leader = check_id(request.data.get("leader_id"),"leader")
         request.data["leader_id"] = leader.id
         if team_size == 2:
@@ -63,13 +71,7 @@ class team(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             if referral != None:
-                participant[0].update(referral_count= participant[0].referral_count + 1)
-            leader.update(is_registered=True)
-            if team_size==2:
-                member_2.update(is_registered=True)
-            if team_size==3:
-                member_2.update(is_registered=True)
-                member_3.update(is_registered=True)
+                Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
             return Response({'msg':'successfully registered'}, status=status.HTTP_201_CREATED)
 
 
