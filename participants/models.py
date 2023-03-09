@@ -6,6 +6,7 @@ from django.core.validators import EmailValidator
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
 from .mail import send_member_id
+import random
 # Create your models here.
 class MyUserManager(BaseUserManager):
     def create_user(self, email, name,password=None):
@@ -75,7 +76,7 @@ def generate_member_id(sender, **kwargs):
     member = kwargs['instance']
     yos = member.year_of_study
     member_id = (yos*1000000 + member.id)
-    referral = member.email[0:3]+str(member_id)
+    referral = member.email[0:3]+str(member_id*100 + random.randint(1 , 99))
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
     if member.is_ambassador == True:
         print(referral)
