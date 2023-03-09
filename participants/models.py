@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
-from django.core.validators import EmailValidator
+from django.core.validators import EmailValidator, MaxValueValidator , MinValueValidator 
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
 from .mail import send_member_id
@@ -60,6 +60,7 @@ class Participant(AbstractBaseUser):
     member_id = models.CharField(max_length=250, blank=True)
     referral_code = models.CharField(max_length=250, blank=True)
     is_ambassador = models.BooleanField(default=False)
+    is_registered = models.BooleanField(default=False)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
@@ -67,9 +68,17 @@ class Participant(AbstractBaseUser):
     def __str__(self):
         return self.email
 
-# class Team(models.Model):
-#     def post(self, request):
-#         name = models.CharField(max_length=150, null=False , blank=False)
+class Team(models.Model):
+    def post(self, request):
+        name = models.CharField(max_length=150, null=False , blank=False, unique=True)
+        size = models.PositiveIntegerField(null=False , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
+        topic = models.CharField(max_length=1500, null=False , blank=False)
+        domain = models.CharField(max_length=150, null=False , blank=False)
+        referral_used = models.CharField(max_length=15, null=False , blank=False)
+        leader_id = models.OneToOneField(Participant , null=False, blank=False)
+        member_2 = models.OneToOneField(Participant , null=False, blank=False)
+        member_3 = models.OneToOneField(Participant , null=False, blank=False)
+        password = models.CharField(max_length=10000000000, null=False, blank=False)
 
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):

@@ -33,3 +33,17 @@ class register(APIView):
             return Response({'msg':'User is made a college ambassador'}, status=status.HTTP_200_OK)
         return Response({'msg':"User doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
+def check_id(participant,participant_type):
+    participant = participant.objects.filter(member_id=participant)
+        if not participant.exists():
+            return Response({'msg': participant_type +"'s Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+        if participant.is_registered == True:
+            return Response({'msg': participant_type + " is already in a team"}, status=status.HTTP_409_CONFLICT)
+        return participant.id
+class Team(APIView):
+    def post(self,request):
+        request.data["password"]= make_password(request.data.get("password"))
+        
+        
+        
+
