@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
-# from rest_framework_simplejwt.tokens import RefreshToken 
+from rest_framework_simplejwt.tokens import RefreshToken 
+from .mail import *
 
 class register(APIView):
     def post(self, request, pk):
@@ -31,8 +32,8 @@ class register(APIView):
             user = Participant.objects.get(email__iexact=email)
             if user.is_ambassador == True:
                 return Response({'User is Already a college ambassador'}, status=status.HTTP_409_CONFLICT)
-            user.is_ambassador = True
-            user.save()
+            Participant.objects.filter(email__iexact=email).update(is_ambassador=True)
+            send_referral_id(email,user.referral_code)
             return Response({'User is made a college ambassador'}, status=status.HTTP_200_OK)
         return Response({"User doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,27 +79,25 @@ class team(APIView):
                     Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
                 return Response({'successfully registered'}, status=status.HTTP_201_CREATED)
 
-# def getTokens(user):
-#     refresh = RefreshToken.for_user(user)
-#     return {
-#         'refresh': str(refresh),
-#         'access': str(refresh.access_token),
-#     }
+def getTokens(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
  
 class Login_user(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        print(password)
         user = Participant.objects.filter(email__iexact = email)
-        print(user)
-        # if not user.exists():
-        #     context = {'msg':'user with this mail does not exist'}
-        #     return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        if not user.exists():
+            context = {'msg':'user with this mail does not exist'}
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
         user = authenticate(username=email, password=password)
         if user is not None:
-            # token = getTokens(user)
-            return Response({'id':user.id,'msg':'Login Success'}, status=status.HTTP_200_OK)
+            token = getTokens(user)
+            return Response({'id':user.id,'tokens': token,'msg':'Login Success'}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)

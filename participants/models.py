@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
 from django.core.validators import EmailValidator, MaxValueValidator , MinValueValidator 
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
-from .mail import send_member_id
+from .mail import *
 import random
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -105,8 +105,8 @@ def generate_member_id(sender, **kwargs):
     referral = member.email[0:3]+str(member_id*100 + random.randint(1 , 99))
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
     if member.is_ambassador == True:
-        print(referral)
-    send_member_id(member.email,member_id)
+        send_member_id(member.email,member_id,referral)
+    send_member_id(member.email,member_id,1)
 
 @receiver(post_save, sender = Team)
 def generate_team_id(sender, **kwargs):
@@ -114,3 +114,4 @@ def generate_team_id(sender, **kwargs):
     size= team.size
     team_id = size*100000+team.id
     Team.objects.filter(id=team.id).update(team_id=team_id)
+    send_team_id(team.leader_id.email,team_id)
