@@ -82,7 +82,7 @@ class Participant(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-class Team(models.Model):
+class Team(AbstractBaseUser):
     name = models.CharField(max_length=150, blank=False, null=True, unique=True)
     size = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
     team_id = models.CharField(max_length=250, blank=True)
@@ -96,6 +96,7 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name + "~" + str(self.size)
+
 
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):
