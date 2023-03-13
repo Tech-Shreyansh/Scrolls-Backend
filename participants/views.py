@@ -22,7 +22,7 @@ class register(APIView):
             if pk=='1':
                 serializer.validated_data["is_ambassador"] = True
             serializer.save()
-            return Response({'successfully registered'}, status=status.HTTP_201_CREATED)
+            return Response({'successfully registered! Check your mail for your scroll id'}, status=status.HTTP_201_CREATED)
         return Response({'enter correct details'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self,request):
@@ -34,7 +34,7 @@ class register(APIView):
                 return Response({'User is Already a college ambassador'}, status=status.HTTP_409_CONFLICT)
             Participant.objects.filter(email__iexact=email).update(is_ambassador=True)
             send_referral_id(email,user.referral_code)
-            return Response({'User is made a college ambassador'}, status=status.HTTP_200_OK)
+            return Response({'User is made a college ambassador! Check your mail for your referral id'}, status=status.HTTP_200_OK)
         return Response({"User doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
 class team(APIView):
@@ -83,7 +83,7 @@ class team(APIView):
                 serializer.save()
                 if referral != None:
                     Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
-                return Response({'successfully registered'}, status=status.HTTP_201_CREATED)
+                return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
 
 def getTokens(user):
     refresh = RefreshToken.for_user(user)
@@ -125,7 +125,6 @@ class Login_team(APIView):
         result = team[0].check_password(password)
         if result is True:
             token = getTokens(team[0])
-            send_team_id(team[0].leader_id.email,team[0].team_id)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
