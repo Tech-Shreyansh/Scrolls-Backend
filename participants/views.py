@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken 
-from .mail import *
+from .otp import *
 from rest_framework.permissions import IsAuthenticated
 
 class register(APIView):
@@ -135,4 +135,20 @@ class Login_team(APIView):
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
+
+class Send_OTP(APIView):
+    def post(self,request,pk):
+        email = request.data.get("email")
+        participant = Participant.objects.filter(email__iexact=email)
+        if not participant.exists():
+                return Response({'msg':'Enter Valid Email'}, status=status.HTTP_400_BAD_REQUEST)
+        if pk==1:
+            team = Team.objects.filter(leader_id=participant[0])
+            if not team.exists():
+                return Response({'msg':'No Team with This Leader Email id exists'}, status=status.HTTP_400_BAD_REQUEST)
+            send_otp(email,1)
+            return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+        if pk==0:
+            send_otp(email,0)
+            return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
 

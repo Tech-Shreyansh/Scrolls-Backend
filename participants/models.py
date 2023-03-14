@@ -7,6 +7,7 @@ from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
 from .mail import *
 import random
+
 # Create your models here.
 class MyUserManager(BaseUserManager):
     def create_user(self, email,password=None):
@@ -96,6 +97,19 @@ class Team(AbstractBaseUser):
 
     def __str__(self):
         return self.name + "~" + str(self.size)
+
+class OTP(models.Model):
+    email = models.EmailField(verbose_name='email address',
+        max_length=255,
+        validators=[EmailValidator()])
+    otp = models.PositiveIntegerField(default=123456)
+    is_team = models.BooleanField(default=False)
+    is_member = models.BooleanField(default=False)
+    time_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email + "~" + str(self.otp) + " : " + str(self.is_team)
+    
 
 
 @receiver(post_save, sender = Participant)
