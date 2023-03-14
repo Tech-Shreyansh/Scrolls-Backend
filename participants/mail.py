@@ -33,3 +33,17 @@ def send_team_id(email,team_id):
     team_id_msg = EmailMultiAlternatives(subject, text,email_by,[email])
     team_id_msg.attach_alternative(style, "text/html")
     team_id_msg.send()
+
+def send_otp(email):
+    subject = "Here's your account verification mail"
+    otp = random.randint(1001 , 9999)
+    text  = f'Your One Time Password for verification on scrolls is {otp}.\nValid for only 2 minutes.\n DO NOT SHARE IT WITH ANYBODY.\n SCROLLS'
+    style = f'<p>Your One Time Password for verification on scrolls is <strong style="font-size: 18px;">{otp}</strong>.</p><p>Valid for only 2 minutes.</p><p style="font-size: 18px;">DO NOT SHARE IT WITH ANYBODY.</p><div style="text-align:center; font-size:40px; color:grey; margin-top:20px;"><strong>SCROLLS</strong></div>'
+    email_by = settings.EMAIL_HOST
+    otp_msg = EmailMultiAlternatives(subject, text,email_by,[email])
+    otp_msg.attach_alternative(style, "text/html")
+    otp_msg.send()
+    OTP_user = OTP.objects.filter(email=email)
+    OTP_user.otp = otp
+    OTP_user.time_created = timezone.now()
+    OTP_user.save()

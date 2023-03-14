@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken 
 from .mail import *
+from rest_framework.permissions import IsAuthenticated
 
 class register(APIView):
     def post(self, request, pk):
@@ -18,7 +19,6 @@ class register(APIView):
             return Response({'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
         serializer = participant_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):  
-            # Participant.objects.create_user(email = request.data.get("email"),name = request.data["name"], password = request.data.get("password"))
             if pk=='1':
                 serializer.validated_data["is_ambassador"] = True
             serializer.save()
@@ -41,12 +41,12 @@ class team(APIView):
     def post(self,request):
         request.data["password"]= make_password(request.data.get("password"))
         leader_id = request.data["leader_id"]
-        member_2 = request.data["member_2"]
-        member_3 = request.data["member_3"]
-        print(leader_id,member_2,member_3)
+        member_2 = request.data.get("member_2")
+        member_3 = request.data.get("member_3")
         team_size = request.data.get("size")
-        if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
-            return Response({"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
+        if team_size>1:
+            if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
+                return Response({"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
         if request.data.get("referral_used") is not None:
             if(request.data["referral_used"][3:10]==str(leader_id)):
                 return Response({"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
@@ -74,16 +74,23 @@ class team(APIView):
             if not member_3.exists():
                 return Response({"member_3's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             request.data["member_3"] = member_3[0].id
-            referral = request.data.get("referral_used")
-            participant = Participant.objects.filter(referral_code=referral)
-            if not participant.exists() and referral != None:
-                return Response({"Invalid referral id"}, status=status.HTTP_400_BAD_REQUEST)
-            serializer = team_serializer(data=request.data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                if referral != None:
-                    Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
-                return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
+        referral = request.data.get("referral_used")
+        participant = Participant.objects.filter(referral_code=referral)
+        if not participant.exists() and referral != None:
+            return Response({"Invalid referral id"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = team_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            if referral != None:
+                Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
+            return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
+
+    # permission_classes = [IsAuthenticated,]
+    # def patch(self,request):
+    #     team = Team.objects.filter(leader_id=request.user)
+    #     return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
+
+
 
 def getTokens(user):
     refresh = RefreshToken.for_user(user)
@@ -128,3 +135,4 @@ class Login_team(APIView):
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
+
