@@ -9,6 +9,8 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken 
 from .otp import *
 from rest_framework.permissions import IsAuthenticated
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 class register(APIView):
     def post(self, request, pk):
@@ -151,4 +153,27 @@ class Send_OTP(APIView):
         if pk==0:
             send_otp(email,0)
             return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+
+class Check_OTP(APIView):
+    def post(self,request,pk):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        if not len(str(otp)) == 4:
+                return Response({'msg':'generate new otp request'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pk == 1:
+            team = OTP.objects.filter(email=email,otp=otp,is_team=True)
+            if team.exists():
+                if team[0].time_created + timedelta(minutes=2) < timezone.now():
+                    return Response({'msg':'OTP expired'},status=status.HTTP_400_BAD_REQUEST) 
+                return Response({'msg':'Verification Successful! Reset your password'}, status=status.HTTP_200_OK)
+            return Response({"mas":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            member = OTP.objects.filter(email=email,otp=otp,is_member=True)
+            if member.exists():
+                if member[0].time_created + timedelta(minutes=2) < timezone.now():
+                    return Response({'msg':'OTP expired'},status=status.HTTP_400_BAD_REQUEST) 
+                return Response({'msg':'Verification Successful! Reset your password'}, status=status.HTTP_200_OK)
+            return Response({"msg":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
 

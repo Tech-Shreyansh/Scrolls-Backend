@@ -8,4 +8,5 @@ urlpatterns = [
     path('login/', Login_user.as_view()),
     path('team_login/', Login_team.as_view()),
     path('forgot_password/<int:pk>', Send_OTP.as_view()),
+    path('verify_otp/<int:pk>', Check_OTP.as_view()),
 ]
