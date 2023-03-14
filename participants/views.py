@@ -138,7 +138,7 @@ class Login_team(APIView):
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
 
-class Send_OTP(APIView):
+class Forgot_password(APIView):
     def post(self,request,pk):
         email = request.data.get("email")
         participant = Participant.objects.filter(email__iexact=email)
@@ -153,6 +153,26 @@ class Send_OTP(APIView):
         if pk==0:
             send_otp(email,0)
             return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+
+    def patch(self,request,pk):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        password =  make_password(request.data.get("password"))
+        if pk==1:
+            team_otp = OTP.objects.filter(email=email,otp=otp,is_team=True)
+            if team_otp.exists():
+                team = Team.objects.filter(leader_id=Participant.objects.get(email__iexact=email))
+                team.update(password=password)
+                team_otp[0].delete()
+                return Response({'msg':'Password Updated'}, status=status.HTTP_200_OK)
+            return Response({'msg':'generate a new otp request'}, status=status.HTTP_400_BAD_REQUEST)
+        member_otp = OTP.objects.filter(email=email,otp=otp,is_member=True)
+        if member_otp.exists():
+            participant = Participant.objects.filter(email__iexact=email)
+            participant.update(password=password)
+            member_otp[0].delete()
+            return Response({'msg':'Password Updated'}, status=status.HTTP_200_OK)
+        return Response({'msg':'generate a new otp request'}, status=status.HTTP_400_BAD_REQUEST)
 
 class Check_OTP(APIView):
     def post(self,request,pk):
@@ -175,5 +195,4 @@ class Check_OTP(APIView):
                     return Response({'msg':'OTP expired'},status=status.HTTP_400_BAD_REQUEST) 
                 return Response({'msg':'Verification Successful! Reset your password'}, status=status.HTTP_200_OK)
             return Response({"msg":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
 
