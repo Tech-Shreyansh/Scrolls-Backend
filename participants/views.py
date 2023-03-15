@@ -18,14 +18,14 @@ class register(APIView):
         request.data["password"]= make_password(request.data.get("password"))
         user = Participant.objects.filter(email__iexact=email)
         if user.exists():
-            return Response({'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
+            return Response({'msg':'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
         serializer = participant_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):  
             if pk=='1':
                 serializer.validated_data["is_ambassador"] = True
             serializer.save()
-            return Response({'successfully registered! Check your mail for your scroll id'}, status=status.HTTP_201_CREATED)
-        return Response({'enter correct details'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'msg':'successfully registered! Check your mail for your scroll id'}, status=status.HTTP_201_CREATED)
+        return Response({'msg':'enter correct details'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self,request):
         email = request.data.get("email")
@@ -33,11 +33,11 @@ class register(APIView):
         if user.exists():
             user = Participant.objects.get(email__iexact=email)
             if user.is_ambassador == True:
-                return Response({'User is Already a college ambassador'}, status=status.HTTP_409_CONFLICT)
+                return Response({'msg':'User is Already a college ambassador'}, status=status.HTTP_409_CONFLICT)
             Participant.objects.filter(email__iexact=email).update(is_ambassador=True)
             send_referral_id(email,user.referral_code)
-            return Response({'User is made a college ambassador! Check your mail for your referral id'}, status=status.HTTP_200_OK)
-        return Response({"User doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg':'User is made a college ambassador! Check your mail for your referral id'}, status=status.HTTP_200_OK)
+        return Response({'msg':"User doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
 class team(APIView):
     def post(self,request):
@@ -48,44 +48,44 @@ class team(APIView):
         team_size = request.data.get("size")
         if team_size>1:
             if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
-                return Response({"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
+                return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
         if request.data.get("referral_used") is not None:
             if(request.data["referral_used"][3:10]==str(leader_id)):
-                return Response({"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
+                return Response({'msg':"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
             if team_size==3:
                 if(request.data["referral_used"][3:10]==str(member_2)or request.data["referral_used"][3:10]==str(member_3)):
-                    return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
+                    return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
             if team_size==2:
                 if(request.data["referral_used"][3:10]==str(member_2)):
-                    return Response({"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
+                    return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
         leader = Participant.objects.filter(member_id=leader_id)
         if not leader.exists():
-            return Response({"leader's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg':"leader's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         request.data["leader_id"] = leader[0].id
         if team_size == 2:
             member_2 = Participant.objects.filter(member_id=member_2)
             if not member_2.exists():
-                return Response({"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'msg':"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             request.data["member_2"] = member_2[0].id
         if team_size == 3:
             member_2 = Participant.objects.filter(member_id=member_2)
             if not member_2.exists():
-                return Response({"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'msg':"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             request.data["member_2"] = member_2[0].id
             member_3 = Participant.objects.filter(member_id=member_3)
             if not member_3.exists():
-                return Response({"member_3's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'msg':"member_3's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             request.data["member_3"] = member_3[0].id
         referral = request.data.get("referral_used")
         participant = Participant.objects.filter(referral_code=referral)
         if not participant.exists() and referral != None:
-            return Response({"Invalid referral id"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg':"Invalid referral id"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = team_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             if referral != None:
                 Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
-            return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
+            return Response({'msg':'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
 
     # permission_classes = [IsAuthenticated,]
     # def patch(self,request):
@@ -138,6 +138,15 @@ class Login_team(APIView):
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
 
+# class Team_dashboard(APIView):
+#     def get(self,request,pk):
+#         user= Team.objects.get(id=pk)
+#         m = Participant.objects.get(id=user.leader_id.id)
+#         leader = participant_serializer(m)
+#         print(user.leader_id)
+#         team = team_serializer(user)
+#         return Response(leader.data, status=status.HTTP_200_OK)
+
 class Forgot_password(APIView):
     def post(self,request,pk):
         email = request.data.get("email")
@@ -187,7 +196,7 @@ class Check_OTP(APIView):
                 if team[0].time_created + timedelta(minutes=2) < timezone.now():
                     return Response({'msg':'OTP expired'},status=status.HTTP_400_BAD_REQUEST) 
                 return Response({'msg':'Verification Successful! Reset your password'}, status=status.HTTP_200_OK)
-            return Response({"mas":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"msg":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             member = OTP.objects.filter(email=email,otp=otp,is_member=True)
             if member.exists():
