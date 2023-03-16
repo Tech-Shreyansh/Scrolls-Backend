@@ -140,12 +140,21 @@ class Login_team(APIView):
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
 
+def get_member_details(member_id):
+    if member_id is not None :
+        member_details = Participant.objects.get(id = member_id)
+        return participant_serializer(member_details).data
+
 class Team_dashboard(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         user= request.user
         team = team_serializer(user)
-        return Response(team.data, status=status.HTTP_200_OK)
+        context = team.data
+        context['leader_data'] = get_member_details(team.data["leader_id"])
+        context['member_2_data'] = get_member_details(team.data["member_2"])
+        context['member_3_data'] = get_member_details(team.data["member_3"])
+        return Response(context, status=status.HTTP_200_OK)
 
 class Ca_dashboard(APIView):
     def get(self,request,pk):

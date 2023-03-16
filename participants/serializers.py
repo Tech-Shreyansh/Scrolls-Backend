@@ -17,3 +17,5 @@ class team_serializer(ModelSerializer):
         extra_kwargs={
             'password':{'write_only': True},
         }
+
+        

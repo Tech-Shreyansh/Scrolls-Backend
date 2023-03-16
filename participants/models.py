@@ -10,26 +10,25 @@ import random
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
-    def create_user(self, email,password=None):
+    def create_user(self, name,password=None):
 
-        if not email:
-            raise ValueError('Users must have an email address')
-
-        email = self.normalize_email(email)
+        if not name:
+            raise ValueError('Users must have an team name')
+        # name = self.name
         user = self.model(
-            email=email,
+            name=name,
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None):
+    def create_superuser(self, name, password=None):
         """
         Creates and saves a superuser with the given email,name, date of
         birth and password.
         """
         user = self.create_user(
-            email=email,
+            name,
             password=password,
         )
         user.is_admin = True
@@ -53,14 +52,16 @@ class Participant(AbstractBaseUser):
     college = models.CharField(max_length=350, null=True , blank=False)
     course = models.CharField(max_length=150, null=True , blank=False)
     branch = models.CharField(max_length=150, blank=True)
-    mobile = models.PositiveIntegerField(null=True , blank=False)
     year_of_study = models.PositiveIntegerField(null=True , blank=False)
     member_id = models.CharField(max_length=250, blank=True)
     referral_code = models.CharField(max_length=250, blank=True)
     is_ambassador = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
     referral_count = models.PositiveIntegerField(default = 0)
-    objects = MyUserManager()
+    password = models.CharField(max_length=10000000000,null=True, blank=False)
+    mobile = models.IntegerField(null=True,blank=False)
+
+    def __str__(self):
+        return self.email
 
 
 class Team(AbstractBaseUser):
@@ -73,7 +74,7 @@ class Team(AbstractBaseUser):
     leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
-    password = models.CharField(max_length=10000000000,null=True, blank=False)
+    is_admin = models.BooleanField(default=False)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
@@ -122,10 +123,10 @@ def generate_member_id(sender, **kwargs):
         send_member_id(member.email,member_id,referral)
     send_member_id(member.email,member_id,1)
 
-@receiver(post_save, sender = Team)
-def generate_team_id(sender, **kwargs):
-    team = kwargs['instance']
-    size= team.size
-    team_id = size*100000+team.id
-    Team.objects.filter(id=team.id).update(team_id=team_id)
-    send_team_id(team.leader_id.email,team_id)
+# @receiver(post_save, sender = Team)
+# def generate_team_id(sender, **kwargs):
+#     team = kwargs['instance']
+#     size= team.size
+#     team_id = size*100000+team.id
+#     Team.objects.filter(id=team.id).update(team_id=team_id)
+#     send_team_id(team.leader_id.email,team_id)
