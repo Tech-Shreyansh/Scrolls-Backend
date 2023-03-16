@@ -76,8 +76,8 @@ class Team(AbstractBaseUser):
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
     is_admin = models.BooleanField(default=False)
-    synopsis = models.FileField(upload_to="static/media", default="")
-    paper = models.FileField(upload_to="static/media", default="")
+    synopsis = models.FileField(upload_to="media", default="")
+    paper = models.FileField(upload_to="media", default="")
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'

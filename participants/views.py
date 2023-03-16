@@ -158,7 +158,9 @@ class Team_dashboard(APIView):
 
 class Ca_dashboard(APIView):
     def get(self,request,pk):
-        leader = participant_serializer(Participant.objects.get(id=pk))
+        leader = Participant.objects.get(id=pk)
+        leader.member_id = None
+        leader = participant_serializer(leader)
         return Response(leader.data, status=status.HTTP_200_OK)
 
 class Forgot_password(APIView):
