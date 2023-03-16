@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 import dotenv
 dotenv.read_dotenv()
 
@@ -44,7 +47,14 @@ INSTALLED_APPS = [
     'corsheaders',
     'participants.apps.ParticipantsConfig',
     'whitenoise.runserver_nostatic', 
+    'cloudinary'
 ]
+
+CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUD_NAME'),
+        'API_KEY': os.environ.get('API_KEY'),
+        'API_SECRET': os.environ.get('API_SECRET')
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

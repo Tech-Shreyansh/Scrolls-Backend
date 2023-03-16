@@ -13,7 +13,7 @@ class participant_serializer(ModelSerializer):
 class team_serializer(ModelSerializer):
     class Meta:
         model = Team
-        fields = ["id","name", "topic", "password", "domain", "size", "leader_id", "member_2", "member_3","referral_used"]
+        fields = ["id","name", "topic", "password", "domain", "size", "leader_id", "member_2", "member_3","referral_used","synopsis","paper"]
         extra_kwargs={
             'password':{'write_only': True},
         }

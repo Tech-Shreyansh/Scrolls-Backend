@@ -7,6 +7,7 @@ from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
 from .mail import *
 import random
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -75,6 +76,8 @@ class Team(AbstractBaseUser):
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
     is_admin = models.BooleanField(default=False)
+    synopsis = models.FileField(upload_to="static/media", default="")
+    paper = models.FileField(upload_to="static/media", default="")
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
@@ -121,12 +124,13 @@ def generate_member_id(sender, **kwargs):
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
     if member.is_ambassador == True:
         send_member_id(member.email,member_id,referral)
-    send_member_id(member.email,member_id,1)
+    else:
+        send_member_id(member.email,member_id,1)
 
-# @receiver(post_save, sender = Team)
-# def generate_team_id(sender, **kwargs):
-#     team = kwargs['instance']
-#     size= team.size
-#     team_id = size*100000+team.id
-#     Team.objects.filter(id=team.id).update(team_id=team_id)
-#     send_team_id(team.leader_id.email,team_id)
+@receiver(post_save, sender = Team)
+def generate_team_id(sender, **kwargs):
+    team = kwargs['instance']
+    size= team.size
+    team_id = size*100000+team.id
+    Team.objects.filter(id=team.id).update(team_id=team_id)
+    send_team_id(team.leader_id.email,team_id)

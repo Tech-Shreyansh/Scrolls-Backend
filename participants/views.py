@@ -133,7 +133,7 @@ class Login_team(APIView):
         name= team[0].name
         result = team[0].check_password(password)
         user = authenticate(username=name,password=password)
-        print(user.id)
+        # print(user.id)
         if result is True:
             token = getTokens(user)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
