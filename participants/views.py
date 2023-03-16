@@ -126,9 +126,12 @@ class Login_team(APIView):
         if not team.exists():
             leader = Participant.objects.filter(email__iexact=team_id)
             if not leader.exists():
-                context = {'msg':'team with this email/team_id does not exist'}
+                context = {'msg':'this email does not exist'}
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
             team = Team.objects.filter(leader_id = leader[0])
+            if not team.exists():
+                return Response({'msg':'team with this email/team_id does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         name= team[0].name
         result = team[0].check_password(password)
@@ -158,10 +161,21 @@ class Team_dashboard(APIView):
 
 class Ca_dashboard(APIView):
     def get(self,request,pk):
-        leader = Participant.objects.get(id=pk)
-        leader.member_id = None
-        leader = participant_serializer(leader)
-        return Response(leader.data, status=status.HTTP_200_OK)
+        CA = Participant.objects.get(id=pk)
+        referral = CA.referral_code
+        teams = Team.objects.filter(referral_used=referral)
+        list_of_teams = []
+        for i in range(len(teams)):
+            team_object = {
+                'team_name' : teams[i].name,
+                'leader' : teams[i].leader_id.name
+            }
+            list_of_teams.append(team_object)
+        CA.member_id = None
+        CA_serializer = participant_serializer(CA)
+        context = CA_serializer.data
+        context['list of teams'] = list_of_teams
+        return Response(context, status=status.HTTP_200_OK)
 
 class Forgot_password(APIView):
     def post(self,request,pk):
