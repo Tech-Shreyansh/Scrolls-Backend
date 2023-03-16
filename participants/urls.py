@@ -9,5 +9,6 @@ urlpatterns = [
     path('team_login/', Login_team.as_view()),
     path('forgot_password/<int:pk>', Forgot_password.as_view()),
     path('verify_otp/<int:pk>', Check_OTP.as_view()),
-    # path('team_dashboard/<int:pk>', Team_dashboard.as_view()),
+    path('team_dashboard/', Team_dashboard.as_view()),
+    path('ca_dashboard/<int:pk>', Ca_dashboard.as_view()),
 ]

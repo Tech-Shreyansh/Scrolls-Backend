@@ -62,10 +62,24 @@ class Participant(AbstractBaseUser):
     referral_count = models.PositiveIntegerField(default = 0)
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'email'
+
+class Team(AbstractBaseUser):
+    name = models.CharField(max_length=150, blank=False, null=True, unique=True)
+    size = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
+    team_id = models.CharField(max_length=250, blank=True)
+    topic = models.CharField(max_length=1500, blank=True)
+    domain = models.CharField(max_length=150, blank=True)
+    referral_used = models.CharField(max_length=15, blank=True)
+    leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
+    member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
+    member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
+    password = models.CharField(max_length=10000000000,null=True, blank=False)
+    objects = MyUserManager()
+
+    USERNAME_FIELD = 'name'
 
     def __str__(self):
-        return self.email
+        return self.name + "~" + str(self.size)
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -82,21 +96,6 @@ class Participant(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
-
-class Team(AbstractBaseUser):
-    name = models.CharField(max_length=150, blank=False, null=True, unique=True)
-    size = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
-    team_id = models.CharField(max_length=250, blank=True)
-    topic = models.CharField(max_length=1500, blank=True)
-    domain = models.CharField(max_length=150, blank=True)
-    referral_used = models.CharField(max_length=15, blank=True)
-    leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
-    member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
-    member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
-    password = models.CharField(max_length=10000000000,null=True, blank=False)
-
-    def __str__(self):
-        return self.name + "~" + str(self.size)
 
 class OTP(models.Model):
     email = models.EmailField(verbose_name='email address',

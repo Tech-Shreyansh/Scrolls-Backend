@@ -70,7 +70,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-AUTH_USER_MODEL = 'participants.Participant'
+AUTH_USER_MODEL = 'participants.Team'
 
 ROOT_URLCONF = "scrolls.urls"
 

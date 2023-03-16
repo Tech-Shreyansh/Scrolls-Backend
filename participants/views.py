@@ -110,10 +110,11 @@ class Login_user(APIView):
             context = {'msg':'user with this email does not exist'}
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-        user = authenticate(username=email, password=password)
-        if user is not None:
-            token = getTokens(user)
-            return Response({'id':user.id,'tokens': token,'msg':'Login Success'}, status=status.HTTP_200_OK)
+        # user = authenticate(username=email, password=password)
+        result = user[0].check_password(password)
+        if result is True:
+            # token = getTokens(user)
+            return Response({'id':user[0].id,'msg':'Login Success'}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -124,28 +125,32 @@ class Login_team(APIView):
         team = Team.objects.filter(team_id = team_id)
         if not team.exists():
             leader = Participant.objects.filter(email__iexact=team_id)
-            if leader.exists():
-                team = Team.objects.filter(leader_id = leader[0])
+            if not leader.exists():
+                context = {'msg':'team with this email/team_id does not exist'}
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            team = Team.objects.filter(leader_id = leader[0])
 
-        if not team.exists():
-            context = {'msg':'team with this email/team_id does not exist'}
-            return Response(context, status=status.HTTP_400_BAD_REQUEST)
-
+        name= team[0].name
         result = team[0].check_password(password)
+        user = authenticate(username=name,password=password)
+        print(user.id)
         if result is True:
-            token = getTokens(team[0])
+            token = getTokens(user)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
         return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
 
-# class Team_dashboard(APIView):
-#     def get(self,request,pk):
-#         user= Team.objects.get(id=pk)
-#         m = Participant.objects.get(id=user.leader_id.id)
-#         leader = participant_serializer(m)
-#         print(user.leader_id)
-#         team = team_serializer(user)
-#         return Response(leader.data, status=status.HTTP_200_OK)
+class Team_dashboard(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        user= request.user
+        team = team_serializer(user)
+        return Response(team.data, status=status.HTTP_200_OK)
+
+class Ca_dashboard(APIView):
+    def get(self,request,pk):
+        leader = participant_serializer(Participant.objects.get(id=pk))
+        return Response(leader.data, status=status.HTTP_200_OK)
 
 class Forgot_password(APIView):
     def post(self,request,pk):
