@@ -131,6 +131,7 @@ def generate_member_id(sender, **kwargs):
 def generate_team_id(sender, **kwargs):
     team = kwargs['instance']
     size= team.size
-    team_id = size*100000+team.id
-    Team.objects.filter(id=team.id).update(team_id=team_id)
-    send_team_id(team.leader_id.email,team_id)
+    if team.team_id == "":
+        team_id = size*100000+team.id
+        Team.objects.filter(id=team.id).update(team_id=team_id)
+        send_team_id(team.leader_id.email,team_id)

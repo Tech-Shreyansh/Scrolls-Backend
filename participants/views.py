@@ -11,6 +11,7 @@ from .otp import *
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime, timedelta
 from django.utils import timezone
+import magic
 
 class register(APIView):
     def post(self, request, pk):
@@ -78,7 +79,7 @@ class team(APIView):
             request.data["member_3"] = member_3[0].id
         referral = request.data.get("referral_used")
         participant = Participant.objects.filter(referral_code=referral)
-        if not participant.exists() and referral != None:
+        if not participant.exists() and referral is not None:
             return Response({'msg':"Invalid referral id"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = team_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -141,7 +142,7 @@ class Login_team(APIView):
             token = getTokens(user)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
-        return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'msg':'Enter correct'}, status=status.HTTP_400_BAD_REQUEST)
 
 def get_member_details(member_id):
     if member_id is not None :
@@ -158,6 +159,25 @@ class Team_dashboard(APIView):
         context['member_2_data'] = get_member_details(team.data["member_2"])
         context['member_3_data'] = get_member_details(team.data["member_3"])
         return Response(context, status=status.HTTP_200_OK)
+
+    def patch(self,request):
+        team= request.user
+        synopsis = request.data.get("synopsis")
+        paper = request.data.get("paper")
+        if synopsis is not None:
+            synopsis_filetype = magic.from_buffer(synopsis.read())
+            if not "PDF" in synopsis_filetype or not "Word" in synopsis_filetype:
+                return Response({'msg':'Synopsis must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+        if paper is not None:
+            paper_filetype = magic.from_buffer(paper.read())
+            if ("PDF" in paper_filetype or "Word" in paper_filetype):
+                return Response({'msg':'Paper must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = team_serializer(team, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':'Data Updated'}, status=status.HTTP_200_OK)
+        
+        return Response({'msg':'Enter correct details'}, status=status.HTTP_400_BAD_REQUEST)
 
 class Ca_dashboard(APIView):
     def get(self,request,pk):
