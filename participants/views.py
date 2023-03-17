@@ -202,7 +202,14 @@ class Ca_dashboard(APIView):
         context = CA_serializer.data
         context['list of teams'] = list_of_teams
         leaderboard = Participant.objects.filter(is_ambassador=True).order_by('-referral_count')
-        print(leaderboard)
+        leaderboard_data = []
+        for i in range(len(leaderboard)):
+            leaderboard_object = {
+                'CA_name' : leaderboard[i].name,
+                'referral_count' : leaderboard[i].referral_count
+            }
+            leaderboard_data.append(leaderboard_object)
+        context['leaderboard'] = leaderboard_data
         return Response(context, status=status.HTTP_200_OK)
 
 class Forgot_password(APIView):
