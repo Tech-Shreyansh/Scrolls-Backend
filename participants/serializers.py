@@ -5,7 +5,7 @@ from .models import *
 class participant_serializer(ModelSerializer):
     class Meta:
         model = Participant
-        fields = ["id","name", "email", "password", "gender", "college", "course", "branch", "year_of_study","mobile","member_id"]
+        fields = ["id","name", "email", "password", "gender", "college", "course", "branch", "year_of_study","mobile","member_id","referral_code","referral_count"]
         extra_kwargs={
             'password':{'write_only': True},
         }
