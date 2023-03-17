@@ -16,3 +16,4 @@ sqlparse==0.4.3
 urllib3==1.26.15
 waitress==2.1.2
 whitenoise==6.4.0
+libmagic==5.44.0

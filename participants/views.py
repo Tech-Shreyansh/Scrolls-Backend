@@ -165,13 +165,19 @@ class Team_dashboard(APIView):
         synopsis = request.data.get("synopsis")
         paper = request.data.get("paper")
         if synopsis is not None:
-            synopsis_filetype = magic.from_buffer(synopsis.read())
-            if not "PDF" in synopsis_filetype or not "Word" in synopsis_filetype:
-                return Response({'msg':'Synopsis must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+            if team.synopsis == "":
+                synopsis_filetype = magic.from_buffer(synopsis.read())
+                if not ("PDF" in synopsis_filetype or "Word" in synopsis_filetype):
+                    return Response({'msg':'Synopsis must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'msg':'Synopsis is already submitted'}, status=status.HTTP_400_BAD_REQUEST)
         if paper is not None:
-            paper_filetype = magic.from_buffer(paper.read())
-            if ("PDF" in paper_filetype or "Word" in paper_filetype):
-                return Response({'msg':'Paper must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+            if team.paper == "":
+                paper_filetype = magic.from_buffer(paper.read())
+                if not ("PDF" in paper_filetype or "Word" in paper_filetype):
+                    return Response({'msg':'Paper must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'msg':'Paper is already submitted'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = team_serializer(team, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -195,6 +201,8 @@ class Ca_dashboard(APIView):
         CA_serializer = participant_serializer(CA)
         context = CA_serializer.data
         context['list of teams'] = list_of_teams
+        leaderboard = Participant.objects.filter(is_ambassador=True).order_by('-referral_count')
+        print(leaderboard)
         return Response(context, status=status.HTTP_200_OK)
 
 class Forgot_password(APIView):
