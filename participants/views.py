@@ -11,6 +11,7 @@ from .otp import *
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime, timedelta
 from django.utils import timezone
+import pylibmagic
 import magic
 
 class register(APIView):
