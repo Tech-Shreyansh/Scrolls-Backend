@@ -127,11 +127,11 @@ def generate_member_id(sender, **kwargs):
     else:
         send_member_id(member.email,member_id,1)
 
-@receiver(post_save, sender = Team)
-def generate_team_id(sender, **kwargs):
-    team = kwargs['instance']
-    size= team.size
-    if team.team_id == "":
-        team_id = size*100000+team.id
-        Team.objects.filter(id=team.id).update(team_id=team_id)
-        send_team_id(team.leader_id.email,team_id)
+# @receiver(post_save, sender = Team)
+# def generate_team_id(sender, **kwargs):
+#     team = kwargs['instance']
+#     size= team.size
+#     if team.team_id == "":
+#         team_id = size*100000+team.id
+#         Team.objects.filter(id=team.id).update(team_id=team_id)
+#         send_team_id(team.leader_id.email,team_id)
