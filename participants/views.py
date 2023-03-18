@@ -17,12 +17,12 @@ import magic
 class register(APIView):
     def post(self, request, pk):
         email = request.data.get("email")
-        request.data["password"]= make_password(request.data.get("password"))
         user = Participant.objects.filter(email__iexact=email)
         if user.exists():
             return Response({'msg':'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
         serializer = participant_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):  
+            serializer.validated_data["password"]= make_password(request.data.get("password"))
             if pk=='1':
                 serializer.validated_data["is_ambassador"] = True
             serializer.save()

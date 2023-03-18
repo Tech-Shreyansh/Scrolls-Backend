@@ -58,7 +58,6 @@ class Participant(AbstractBaseUser):
     referral_code = models.CharField(max_length=250, blank=True)
     is_ambassador = models.BooleanField(default=False)
     referral_count = models.PositiveIntegerField(default = 0)
-    password = models.CharField(max_length=10000000000,null=True, blank=False)
     mobile = models.IntegerField(null=True,blank=False)
 
     def __str__(self):
