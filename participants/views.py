@@ -112,13 +112,12 @@ class Login_user(APIView):
             context = {'msg':'user with this email does not exist'}
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-        # user = authenticate(username=email, password=password)
-        result = user[0].check_password(password)
-        if result is True:
-            # token = getTokens(user)
-            return Response({'id':user[0].id,'msg':'Login Success'}, status=status.HTTP_200_OK)
-
-        return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
+        if user[0].is_ambassador == True:
+            result = user[0].check_password(password)
+            if result is True:
+                return Response({'id':user[0].id,'msg':'Login Success'}, status=status.HTTP_200_OK)
+            return Response({'msg':'Enter correct Password'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'msg':'This user is not a college ambassador'}, status=status.HTTP_400_BAD_REQUEST)
 
 class Login_team(APIView):
     def post(self, request):

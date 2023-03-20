@@ -1,2 +1,4 @@
 .env
 env/
+Key.json
+db.sqlite3

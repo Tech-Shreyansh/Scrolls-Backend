@@ -8,6 +8,8 @@ from django.dispatch import receiver
 from .mail import *
 import random
 from cloudinary.models import CloudinaryField
+from gdstorage.storage import GoogleDriveStorage
+gd_storage = GoogleDriveStorage()
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -63,6 +65,8 @@ class Participant(AbstractBaseUser):
     def __str__(self):
         return self.email
 
+    USERNAME_FIELD = 'email'
+
 
 class Team(AbstractBaseUser):
     name = models.CharField(max_length=150, blank=False, null=True, unique=True)
@@ -75,8 +79,8 @@ class Team(AbstractBaseUser):
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
     is_admin = models.BooleanField(default=False)
-    synopsis = models.FileField(upload_to="media", default="")
-    paper = models.FileField(upload_to="media", default="")
+    synopsis = models.FileField(upload_to="media", default="", storage=gd_storage)
+    paper = models.FileField(upload_to="media", default="", storage=gd_storage)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
@@ -118,7 +122,7 @@ class OTP(models.Model):
 def generate_member_id(sender, **kwargs):
     member = kwargs['instance']
     yos = member.year_of_study
-    member_id = (yos*1000000 + member.id)
+    member_id = (yos*100000 + member.id)*100 + random.randint(1 , 99)
     referral = member.email[0:3]+str(member_id*100 + random.randint(1 , 99))
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
     if member.is_ambassador == True:
@@ -126,11 +130,11 @@ def generate_member_id(sender, **kwargs):
     else:
         send_member_id(member.email,member_id,1)
 
-# @receiver(post_save, sender = Team)
-# def generate_team_id(sender, **kwargs):
-#     team = kwargs['instance']
-#     size= team.size
-#     if team.team_id == "":
-#         team_id = size*100000+team.id
-#         Team.objects.filter(id=team.id).update(team_id=team_id)
-#         send_team_id(team.leader_id.email,team_id)
+@receiver(post_save, sender = Team)
+def generate_team_id(sender, **kwargs):
+    team = kwargs['instance']
+    size= team.size
+    if team.team_id == "":
+        team_id = (size*100000+team.id)*100 + random.randint(1 , 99)
+        Team.objects.filter(id=team.id).update(team_id=team_id)
+        send_team_id(team.leader_id.email,team_id)
