@@ -8,8 +8,6 @@ from django.dispatch import receiver
 from .mail import *
 import random
 from cloudinary.models import CloudinaryField
-from gdstorage.storage import GoogleDriveStorage
-gd_storage = GoogleDriveStorage()
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
@@ -79,8 +77,8 @@ class Team(AbstractBaseUser):
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
     is_admin = models.BooleanField(default=False)
-    synopsis = models.FileField(upload_to="media", default="", storage=gd_storage)
-    paper = models.FileField(upload_to="media", default="", storage=gd_storage)
+    synopsis = models.FileField(upload_to="media", default="")
+    paper = models.FileField(upload_to="media", default="")
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
