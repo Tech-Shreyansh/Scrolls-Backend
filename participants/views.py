@@ -89,13 +89,6 @@ class team(APIView):
                 Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
             return Response({'msg':'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
 
-    # permission_classes = [IsAuthenticated,]
-    # def patch(self,request):
-    #     team = Team.objects.filter(leader_id=request.user)
-    #     return Response({'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
-
-
-
 def getTokens(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -200,7 +193,7 @@ class Ca_dashboard(APIView):
         CA.member_id = None
         CA_serializer = participant_serializer(CA)
         context = CA_serializer.data
-        context['list of teams'] = list_of_teams
+        context['list_of_teams'] = list_of_teams
         leaderboard = Participant.objects.filter(is_ambassador=True).order_by('-referral_count')
         leaderboard_data = []
         for i in range(len(leaderboard)):
