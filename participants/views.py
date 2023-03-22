@@ -27,13 +27,7 @@ class register(APIView):
             'response': request.data['g-recaptcha-response'],
             }
         )
-        # form = Captcha(request.POST)
-        # if form.is_valid():
-        print(secret_key)
-        print(request.data['g-recaptcha-response'])
-        print(r.json())
         if r.json()['success']:
-            print("done")
             email = request.data.get("email")
             user = Participant.objects.filter(email__iexact=email)
             if user.exists():
@@ -150,7 +144,6 @@ class Login_team(APIView):
         name= team[0].name
         result = team[0].check_password(password)
         user = authenticate(username=name,password=password)
-        # print(user.id)
         if result is True:
             token = getTokens(user)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
