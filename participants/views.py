@@ -15,8 +15,10 @@ import pylibmagic
 import magic
 from django.conf import settings
 import requests
+from rest_framework.throttling import UserRateThrottle
 
 class register(APIView):
+    throttle_classes = [UserRateThrottle]
     def post(self, request, pk):
         secret_key = settings.RECAPTCHA_PRIVATE_KEY
         r = requests.post(
