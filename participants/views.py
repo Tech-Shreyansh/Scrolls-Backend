@@ -13,21 +13,41 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import pylibmagic
 import magic
+from .forms import Captcha
+from django.conf import settings
+import requests
 
 class register(APIView):
     def post(self, request, pk):
-        email = request.data.get("email")
-        user = Participant.objects.filter(email__iexact=email)
-        if user.exists():
-            return Response({'msg':'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
-        serializer = participant_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):  
-            serializer.validated_data["password"]= make_password(request.data.get("password"))
-            if pk=='1':
-                serializer.validated_data["is_ambassador"] = True
-            serializer.save()
-            return Response({'msg':'successfully registered! Check your mail for your scroll id'}, status=status.HTTP_201_CREATED)
-        return Response({'msg':'enter correct details'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        secret_key = settings.RECAPTCHA_PRIVATE_KEY
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+            'secret': secret_key,
+            'response': request.data['g-recaptcha-response'],
+            }
+        )
+        # form = Captcha(request.POST)
+        # if form.is_valid():
+        print(secret_key)
+        print(request.data['g-recaptcha-response'])
+        print(r.json())
+        if r.json()['success']:
+            print("done")
+            email = request.data.get("email")
+            user = Participant.objects.filter(email__iexact=email)
+            if user.exists():
+                return Response({'msg':'Email Already Exists'}, status=status.HTTP_409_CONFLICT)
+            serializer = participant_serializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):  
+                serializer.validated_data["password"]= make_password(request.data.get("password"))
+                if pk=='1':
+                    serializer.validated_data["is_ambassador"] = True
+                serializer.save()
+                return Response({'msg':'successfully registered! Check your mail for your scroll id'}, status=status.HTTP_201_CREATED)
+            return Response({'msg':'enter correct details'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        else:
+            return Response({'msg':'verify captcha'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self,request):
         email = request.data.get("email")

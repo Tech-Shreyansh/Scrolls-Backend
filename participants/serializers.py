@@ -8,6 +8,12 @@ class participant_serializer(ModelSerializer):
         fields = ["id","name", "email", "password", "gender", "college", "course", "branch", "year_of_study","mobile","member_id","referral_code","referral_count"]
         extra_kwargs={
             'password':{'write_only': True, 'required': True},
+            'gender':{'required': True},
+            'name':{'required': True},
+            'college':{'required': True},
+            'course':{'required': True},
+            'year_of_study':{'required': True},
+            'mobile':{'required': True},
         }
 
 class team_serializer(ModelSerializer):

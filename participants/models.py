@@ -43,7 +43,6 @@ class Participant(AbstractBaseUser):
         ('F', 'Female'),
         ('O', 'Others')
     )
-
     email = models.EmailField(verbose_name='email address',
         max_length=255,
         unique=True,
