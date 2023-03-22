@@ -52,7 +52,7 @@ class Participant(AbstractBaseUser):
     college = models.CharField(max_length=350, null=True , blank=False)
     course = models.CharField(max_length=150, null=True , blank=False)
     branch = models.CharField(max_length=150, blank=True)
-    year_of_study = models.PositiveIntegerField(null=True , blank=False)
+    year_of_study = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(4),MinValueValidator(1)])
     member_id = models.CharField(max_length=250, blank=True)
     referral_code = models.CharField(max_length=250, blank=True)
     is_ambassador = models.BooleanField(default=False)

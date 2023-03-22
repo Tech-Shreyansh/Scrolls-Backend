@@ -7,7 +7,6 @@ Django==4.1.7
 django-cors-headers==3.14.0
 django-dotenv==1.4.2
 django-googledrive-storage==1.6.0
-django-recaptcha==3.0.0
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 google-api-core==2.10.2

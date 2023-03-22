@@ -26,7 +26,7 @@ class register(APIView):
             'response': request.data['g-recaptcha-response'],
             }
         )
-        if r.json()['success']:
+        if not r.json()['success']:
             email = request.data.get("email")
             user = Participant.objects.filter(email__iexact=email)
             if user.exists():
