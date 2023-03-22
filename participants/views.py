@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import pylibmagic
 import magic
-from .forms import Captcha
 from django.conf import settings
 import requests
 
