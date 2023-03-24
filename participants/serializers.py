@@ -22,6 +22,9 @@ class team_serializer(ModelSerializer):
         fields = ["id","name", "topic", "password", "domain", "size", "leader_id", "member_2", "member_3","referral_used","synopsis","paper"]
         extra_kwargs={
             'password':{'write_only': True},
+            'name':{'required': True},
+            'size':{'required': True},
+            'leader_id':{'required': True},
         }
 
         

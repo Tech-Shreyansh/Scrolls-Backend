@@ -18,7 +18,7 @@ import requests
 from rest_framework.throttling import UserRateThrottle
 
 class register(APIView):
-    throttle_classes = [UserRateThrottle]
+    # throttle_classes = [UserRateThrottle]
     def post(self, request, pk):
         secret_key = settings.RECAPTCHA_PRIVATE_KEY
         r = requests.post(
@@ -28,7 +28,11 @@ class register(APIView):
             'response': request.data['g-recaptcha-response'],
             }
         )
-        if not r.json()['success']:
+        if r.json()['success']:
+            mobile = int(request.data.get("mobile"))
+            print(mobile)
+            if mobile > 9999999999 or mobile < 1000000000 : 
+                return Response({'msg':"Enter a valid 10 digit mobile number"}, status=status.HTTP_409_CONFLICT)
             email = request.data.get("email")
             user = Participant.objects.filter(email__iexact=email)
             if user.exists():
@@ -58,7 +62,9 @@ class register(APIView):
 
 class team(APIView):
     def post(self,request):
-        request.data["password"]= make_password(request.data.get("password"))
+        serializer = team_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            request.data["password"]= make_password(request.data.get("password"))
         leader_id = request.data["leader_id"]
         member_2 = request.data.get("member_2")
         member_3 = request.data.get("member_3")
@@ -229,9 +235,17 @@ class Forgot_password(APIView):
             team = Team.objects.filter(leader_id=participant[0])
             if not team.exists():
                 return Response({'msg':'No Team with This Leader Email id exists'}, status=status.HTTP_400_BAD_REQUEST)
+            team_otp = OTP.objects.filter(email=email,is_team=True)
+            if team_otp.exists():
+                if team_otp[0].time_created + timedelta(minutes=1) > timezone.now():
+                    return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
             send_otp(email,1)
             return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
         if pk==0:
+            member_otp = OTP.objects.filter(email=email,is_member=True)
+            if member_otp.exists():
+                if member_otp[0].time_created + timedelta(minutes=1) > timezone.now():
+                    return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
             send_otp(email,0)
             return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
 
