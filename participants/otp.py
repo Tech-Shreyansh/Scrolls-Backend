@@ -17,7 +17,6 @@ def send_otp(email,check):
     email_by = settings.EMAIL_HOST
     otp_msg = EmailMultiAlternatives(subject, text,email_by,[email])
     otp_msg.attach_alternative(style, "text/html")
-    otp_msg.send()
     if check==1:
         OTP_data = OTP.objects.filter(email__iexact=email,is_team=True)
     else:
@@ -29,3 +28,4 @@ def send_otp(email,check):
         OTP.objects.create(email=email,is_team=True,otp=otp)
     else:
         OTP.objects.create(email=email,is_member=True,otp=otp)
+    otp_msg.send()

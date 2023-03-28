@@ -1,3 +1,4 @@
 .env
-env/
+/env
 scrolls.sock
+db.sqlite3

@@ -18,17 +18,17 @@ import requests
 from rest_framework.throttling import UserRateThrottle
 
 class register(APIView):
-    # throttle_classes = [UserRateThrottle]
+    throttle_classes = [UserRateThrottle]
     def post(self, request, pk):
         secret_key = settings.RECAPTCHA_PRIVATE_KEY
         r = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
             data={
             'secret': secret_key,
-            'response': request.data['g-recaptcha-response'],
+            'response': request.data.get('g-recaptcha-response'),
             }
         )
-        if r.json()['success']:
+        if not r.json()['success']:
             mobile = int(request.data.get("mobile"))
             print(mobile)
             if mobile > 9999999999 or mobile < 1000000000 : 
@@ -63,13 +63,17 @@ class register(APIView):
 class team(APIView):
     def post(self,request):
         serializer = team_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            request.data["password"]= make_password(request.data.get("password"))
+        request.data["password"]= make_password(request.data.get("password"))
         leader_id = request.data["leader_id"]
         member_2 = request.data.get("member_2")
         member_3 = request.data.get("member_3")
         team_size = request.data.get("size")
-        if team_size>1:
+        if team_size is None or team_size == 1 :
+            return Response({'msg':"Team size must be atleast 2"}, status=status.HTTP_409_CONFLICT)
+        if team_size==2:
+            if(leader_id==member_2):
+                return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
+        if team_size>2:
             if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
                 return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
         if request.data.get("referral_used") is not None:
@@ -85,16 +89,12 @@ class team(APIView):
         if not leader.exists():
             return Response({'msg':"leader's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
         request.data["leader_id"] = leader[0].id
-        if team_size == 2:
+        if team_size > 1:
             member_2 = Participant.objects.filter(member_id=member_2)
             if not member_2.exists():
                 return Response({'msg':"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
             request.data["member_2"] = member_2[0].id
-        if team_size == 3:
-            member_2 = Participant.objects.filter(member_id=member_2)
-            if not member_2.exists():
-                return Response({'msg':"member_2's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
-            request.data["member_2"] = member_2[0].id
+        if team_size > 2:
             member_3 = Participant.objects.filter(member_id=member_3)
             if not member_3.exists():
                 return Response({'msg':"member_3's Id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
@@ -176,6 +176,7 @@ class Team_dashboard(APIView):
     def patch(self,request):
         team= request.user
         synopsis = request.data.get("synopsis")
+        print(synopsis)
         paper = request.data.get("paper")
         if synopsis is not None:
             if team.synopsis == "":
@@ -227,27 +228,38 @@ class Ca_dashboard(APIView):
 
 class Forgot_password(APIView):
     def post(self,request,pk):
-        email = request.data.get("email")
-        participant = Participant.objects.filter(email__iexact=email)
-        if not participant.exists():
-                return Response({'msg':'Enter Valid Email'}, status=status.HTTP_400_BAD_REQUEST)
-        if pk==1:
-            team = Team.objects.filter(leader_id=participant[0])
-            if not team.exists():
-                return Response({'msg':'No Team with This Leader Email id exists'}, status=status.HTTP_400_BAD_REQUEST)
-            team_otp = OTP.objects.filter(email=email,is_team=True)
-            if team_otp.exists():
-                if team_otp[0].time_created + timedelta(minutes=1) > timezone.now():
-                    return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
-            send_otp(email,1)
-            return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
-        if pk==0:
-            member_otp = OTP.objects.filter(email=email,is_member=True)
-            if member_otp.exists():
-                if member_otp[0].time_created + timedelta(minutes=1) > timezone.now():
-                    return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
-            send_otp(email,0)
-            return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+        secret_key = settings.RECAPTCHA_PRIVATE_KEY
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+            'secret': secret_key,
+            'response': request.data['g-recaptcha-response'],
+            }
+        )
+        if r.json()['success']:
+            email = request.data.get("email")
+            participant = Participant.objects.filter(email__iexact=email)
+            if not participant.exists():
+                    return Response({'msg':'Enter Valid Email'}, status=status.HTTP_400_BAD_REQUEST)
+            if pk==1:
+                team = Team.objects.filter(leader_id=participant[0])
+                if not team.exists():
+                    return Response({'msg':'No Team with This Leader Email id exists'}, status=status.HTTP_400_BAD_REQUEST)
+                team_otp = OTP.objects.filter(email=participant[0],is_team=True)
+                if team_otp.exists():
+                    if team_otp[0].time_created + timedelta(minutes=1) > timezone.now():
+                        return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
+                send_otp(email,1)
+                return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+            if pk==0:
+                member_otp = OTP.objects.filter(email=participant[0],is_member=True)
+                if member_otp.exists():
+                    if member_otp[0].time_created + timedelta(minutes=1) > timezone.now():
+                        return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
+                send_otp(email,0)
+                return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'msg':'verify captcha'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def patch(self,request,pk):
         email = request.data.get("email")
