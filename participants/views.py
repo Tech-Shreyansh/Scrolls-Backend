@@ -168,6 +168,7 @@ class Team_dashboard(APIView):
         user= request.user
         team = team_serializer(user)
         context = team.data
+        context['is_selected'] = Team.objects.get(id=user.id).is_selected
         context['leader_data'] = get_member_details(team.data["leader_id"])
         context['member_2_data'] = get_member_details(team.data["member_2"])
         context['member_3_data'] = get_member_details(team.data["member_3"])
@@ -176,9 +177,16 @@ class Team_dashboard(APIView):
     def patch(self,request):
         team= request.user
         synopsis = request.data.get("synopsis")
-        print(synopsis)
         paper = request.data.get("paper")
+        if team.domain != "" and request.data.get("domain") is not None:
+            return Response({'msg':'domain is already selected'}, status=status.HTTP_400_BAD_REQUEST)
+        if team.topic != "" and request.data.get("topic") is not None:
+            return Response({'msg':'topic is already selected'}, status=status.HTTP_400_BAD_REQUEST)
         if synopsis is not None:
+            if team.domain == "" and request.data.get("domain") is None:
+                return Response({'msg':'Select your domain before synopsis submission'}, status=status.HTTP_400_BAD_REQUEST)
+            if team.topic == "" and request.data.get("topic") is None:
+                return Response({'msg':'Select your topic before synopsis submission'}, status=status.HTTP_400_BAD_REQUEST)
             if team.synopsis == "":
                 synopsis_filetype = magic.from_buffer(synopsis.read())
                 if not ("PDF" in synopsis_filetype or "Word" in synopsis_filetype):
@@ -187,6 +195,8 @@ class Team_dashboard(APIView):
                 return Response({'msg':'Synopsis is already submitted'}, status=status.HTTP_400_BAD_REQUEST)
         if paper is not None:
             if team.paper == "":
+                if team.is_selected == False:
+                    return Response({'msg':'Paper can only be submitted after selection in Synopsis round'}, status=status.HTTP_400_BAD_REQUEST)
                 paper_filetype = magic.from_buffer(paper.read())
                 if not ("PDF" in paper_filetype or "Word" in paper_filetype):
                     return Response({'msg':'Paper must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)

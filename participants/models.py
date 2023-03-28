@@ -73,10 +73,11 @@ class Team(AbstractBaseUser):
     referral_used = models.CharField(max_length=15, blank=True)
     leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
-    member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3")
+    member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3", blank=True)
     is_admin = models.BooleanField(default=False)
-    synopsis = models.FileField(upload_to="", default="")
-    paper = models.FileField(upload_to="", default="")
+    synopsis = models.FileField(upload_to="", default="",blank=True)
+    paper = models.FileField(upload_to="", default="",blank=True)
+    is_selected = models.BooleanField(default=False)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
