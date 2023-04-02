@@ -65,11 +65,19 @@ class Participant(AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
 class Team(AbstractBaseUser):
+    domain = (
+        ("Management Science","Management Science"),
+        ("Electrical and Electronics Engineering","Electrical and Electronics Engineering"),
+        ("Civil Engineering","Civil Engineering"),
+        ("Electronics and Communication Engineering","Electronics and Communication Engineering"),
+        ("Mechanical Engineering","Mechanical Engineering"),
+        ("Computer Science and Information Technology","Computer Science and Information Technology")
+    )
     name = models.CharField(max_length=150, blank=False, null=True, unique=True)
     size = models.PositiveIntegerField(null=True , blank=False, validators=[MaxValueValidator(3),MinValueValidator(1)])
     team_id = models.CharField(max_length=250, blank=True)
     topic = models.CharField(max_length=1500, blank=True)
-    domain = models.CharField(max_length=150, blank=True)
+    domain = models.CharField(max_length=150,choices=domain, blank=True)
     referral_used = models.CharField(max_length=15, blank=True)
     leader_id = models.OneToOneField(Participant , null=True , blank=False , on_delete=models.RESTRICT, related_name = "leader",)
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
@@ -81,6 +89,7 @@ class Team(AbstractBaseUser):
     objects = MyUserManager()
 
     USERNAME_FIELD = 'name'
+
 
     def __str__(self):
         return self.name + "~" + str(self.size)
@@ -101,6 +110,9 @@ class Team(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    def get_domain(self):
+        return str(self.domain)
+
 class OTP(models.Model):
     email = models.EmailField(verbose_name='email address',
         max_length=255,
@@ -113,13 +125,17 @@ class OTP(models.Model):
     def __str__(self):
         return self.email + "~" + str(self.otp) + " : " + str(self.is_team)
     
+class Registration_Check(models.Model):
+    is_open = models.BooleanField(default=True)
 
+    def __str__(self):
+        return str(self.is_open)
 
 @receiver(post_save, sender = Participant)
 def generate_member_id(sender, **kwargs):
     member = kwargs['instance']
     yos = member.year_of_study
-    member_id = (yos*100000 + member.id)*100 + random.randint(1 , 99)
+    member_id = (yos*100000 + member.id)*1000 + random.randint(1 , 999)
     referral = member.email[0:3]+str(member_id*100 + random.randint(1 , 99))
     Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
     if member.is_ambassador == True:
@@ -132,6 +148,6 @@ def generate_team_id(sender, **kwargs):
     team = kwargs['instance']
     size= team.size
     if team.team_id == "":
-        team_id = (size*100000+team.id)*100 + random.randint(1 , 99)
+        team_id = "SC" + str((size*10000+team.id)*1000 + random.randint(1 , 999))
         Team.objects.filter(id=team.id).update(team_id=team_id)
         send_team_id(team.leader_id.email,team_id)

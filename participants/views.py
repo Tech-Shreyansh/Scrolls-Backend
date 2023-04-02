@@ -20,6 +20,9 @@ from rest_framework.throttling import UserRateThrottle
 class register(APIView):
     throttle_classes = [UserRateThrottle]
     def post(self, request, pk):
+        check = Registration_Check.objects.all()
+        if check[0].is_open == False:
+            return Response({"msg":"Registration will begin soon"}, status=status.HTTP_400_BAD_REQUEST)
         secret_key = settings.RECAPTCHA_PRIVATE_KEY
         r = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
@@ -62,6 +65,9 @@ class register(APIView):
 
 class team(APIView):
     def post(self,request):
+        check = Registration_Check.objects.all()
+        if check[0].is_open == False:
+            return Response({"msg":"Registration will begin soon"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = team_serializer(data=request.data)
         request.data["password"]= make_password(request.data.get("password"))
         leader_id = request.data["leader_id"]
@@ -70,9 +76,8 @@ class team(APIView):
         team_size = request.data.get("size")
         if team_size is None or team_size == 1 :
             return Response({'msg':"Team size must be atleast 2"}, status=status.HTTP_409_CONFLICT)
-        if team_size==2:
-            if(leader_id==member_2):
-                return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
+        if team_size==2 and leader_id==member_2:
+            return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
         if team_size>2:
             if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
                 return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
@@ -109,6 +114,7 @@ class team(APIView):
             if referral != None:
                 Participant.objects.filter(referral_code=referral).update(referral_count= participant[0].referral_count + 1)
             return Response({'msg':'successfully registered! Check your mail for your team id '}, status=status.HTTP_201_CREATED)
+        # return Response({'msg':"Enter Correct details"}, status=status.HTTP_400_BAD_REQUEST)
 
 def getTokens(user):
     refresh = RefreshToken.for_user(user)
@@ -191,6 +197,11 @@ class Team_dashboard(APIView):
                 synopsis_filetype = magic.from_buffer(synopsis.read())
                 if not ("PDF" in synopsis_filetype or "Word" in synopsis_filetype):
                     return Response({'msg':'Synopsis must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    if "PDF" in synopsis_filetype:
+                        synopsis.name = team.name + ".pdf"
+                    else:
+                        synopsis.name = team.name + ".doc"
             else:
                 return Response({'msg':'Synopsis is already submitted'}, status=status.HTTP_400_BAD_REQUEST)
         if paper is not None:
@@ -200,14 +211,17 @@ class Team_dashboard(APIView):
                 paper_filetype = magic.from_buffer(paper.read())
                 if not ("PDF" in paper_filetype or "Word" in paper_filetype):
                     return Response({'msg':'Paper must be PDF or Word Document'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    if "PDF" in paper_filetype:
+                        paper.name = team.name + ".pdf"
+                    else:
+                        paper.name = team.name + ".doc"
             else:
                 return Response({'msg':'Paper is already submitted'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = team_serializer(team, data=request.data, partial=True)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response({'msg':'Data Updated'}, status=status.HTTP_200_OK)
-        
-        return Response({'msg':'Enter correct details'}, status=status.HTTP_400_BAD_REQUEST)
 
 class Ca_dashboard(APIView):
     def get(self,request,pk):
@@ -296,7 +310,7 @@ class Check_OTP(APIView):
         email = request.data.get("email")
         otp = request.data.get("otp")
         if not len(str(otp)) == 4:
-                return Response({'msg':'generate new otp request'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg':'generate new otp request'}, status=status.HTTP_400_BAD_REQUEST)
 
         if pk == 1:
             team = OTP.objects.filter(email=email,otp=otp,is_team=True)
@@ -313,3 +327,9 @@ class Check_OTP(APIView):
                 return Response({'msg':'Verification Successful! Reset your password'}, status=status.HTTP_200_OK)
             return Response({"msg":"Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
+class Check_registration(APIView):
+    def get(self,request):
+        check = Registration_Check.objects.all()
+        if check[0].is_open == True:
+            return Response({"msg":"Registration Is Open"}, status=status.HTTP_200_OK)
+        return Response({"msg":"Registration will begin soon"}, status=status.HTTP_400_BAD_REQUEST)
