@@ -14,7 +14,7 @@ from django.utils import timezone
 import pylibmagic
 import magic
 from django.conf import settings
-import requests
+import requests, urllib
 from rest_framework.throttling import UserRateThrottle
 
 class register(APIView):
@@ -31,7 +31,7 @@ class register(APIView):
             'response': request.data.get('g-recaptcha-response'),
             }
         )
-        if not r.json()['success']:
+        if r.json()['success']:
             mobile = int(request.data.get("mobile"))
             print(mobile)
             if mobile > 9999999999 or mobile < 1000000000 : 
@@ -82,13 +82,14 @@ class team(APIView):
             if(leader_id==member_2 or leader_id == member_3 or member_2==member_3):
                 return Response({'msg':"2 teammates can't have same scroll id"}, status=status.HTTP_409_CONFLICT)
         if request.data.get("referral_used") is not None:
-            if(request.data["referral_used"][3:10]==str(leader_id)):
+            print(request.data["referral_used"][3:12],str(leader_id))
+            if(request.data["referral_used"][3:12]==str(leader_id)):
                 return Response({'msg':"cannot use leader's referral code"}, status=status.HTTP_409_CONFLICT)
             if team_size==3:
-                if(request.data["referral_used"][3:10]==str(member_2)or request.data["referral_used"][3:10]==str(member_3)):
+                if(request.data["referral_used"][3:12]==str(member_2)or request.data["referral_used"][3:12]==str(member_3)):
                     return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
             if team_size==2:
-                if(request.data["referral_used"][3:10]==str(member_2)):
+                if(request.data["referral_used"][3:12]==str(member_2)):
                     return Response({'msg':"cannot use teammate's referral code"}, status=status.HTTP_409_CONFLICT)
         leader = Participant.objects.filter(member_id=leader_id)
         if not leader.exists():
@@ -147,13 +148,11 @@ class Login_team(APIView):
         if not team.exists():
             leader = Participant.objects.filter(email__iexact=team_id)
             if not leader.exists():
-                context = {'msg':'this email does not exist'}
+                context = {'msg':'this email / team id does not exist'}
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
             team = Team.objects.filter(leader_id = leader[0])
             if not team.exists():
-                return Response({'msg':'team with this email/team_id does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-
+                return Response({'msg':'team with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         name= team[0].name
         result = team[0].check_password(password)
         user = authenticate(username=name,password=password)

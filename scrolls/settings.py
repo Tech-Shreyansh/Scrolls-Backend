@@ -61,8 +61,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '25/hour',
-        'user': '25/hour'
+        'anon': '20/hour',
+        'user': '75/hour'
     }
 }
 
@@ -102,9 +102,15 @@ TEMPLATES = [
         },
     },
 ]
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'https://web-production-f8d3.up.railway.app',
+    'https://scrollsakgec.in',
+    'http://localhost:3000'
+]
 CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-f8d3.up.railway.app'
+    'https://web-production-f8d3.up.railway.app',
+    'https://scrollsakgec.in/',
+    'http://localhost:3000/'
 ]
 
 WSGI_APPLICATION = "scrolls.wsgi.application"

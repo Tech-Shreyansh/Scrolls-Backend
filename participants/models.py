@@ -64,11 +64,17 @@ class Participant(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
 
+def synopsis_name(self,file_name):
+    return self.domain + "/synopsis/" + self.synopsis.name
+
+def paper_name(self,file_name):
+    return self.domain + "/paper/" + self.paper.name
+
 class Team(AbstractBaseUser):
     domain = (
-        ("Management Science","Management Science"),
-        ("Electrical and Electronics Engineering","Electrical and Electronics Engineering"),
-        ("Civil Engineering","Civil Engineering"),
+        ("Management Science","Management_Science"),
+        ("Electrical and Electronics Engineering","Electrical_and_Electronics_Engineering"),
+        ("Civil Engineering","Civil_Engineering"),
         ("Electronics and Communication Engineering","Electronics and Communication Engineering"),
         ("Mechanical Engineering","Mechanical Engineering"),
         ("Computer Science and Information Technology","Computer Science and Information Technology")
@@ -83,8 +89,8 @@ class Team(AbstractBaseUser):
     member_2 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_2")
     member_3 = models.OneToOneField(Participant , null=True , on_delete=models.RESTRICT , related_name = "member_3", blank=True)
     is_admin = models.BooleanField(default=False)
-    synopsis = models.FileField(upload_to="", default="",blank=True)
-    paper = models.FileField(upload_to="", default="",blank=True)
+    synopsis = models.FileField(upload_to= synopsis_name , default="",blank=True)
+    paper = models.FileField(upload_to=paper_name, default="",blank=True)
     is_selected = models.BooleanField(default=False)
     objects = MyUserManager()
 
