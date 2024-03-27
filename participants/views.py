@@ -31,9 +31,9 @@ class register(APIView):
             'response': request.data.get('g-recaptcha-response'),
             }
         )
-        print(request.data.get('g-recaptcha-response'))
+        # print(request.data.get('g-recaptcha-response'))
         # print(r)
-        print(r.json()['success'])
+        # print(r.json()['success'])
         if r.json()['success']:
             mobile = int(request.data.get("mobile"))
             print(mobile)

@@ -9,7 +9,7 @@ class Team_admin(ExportActionMixin, admin.ModelAdmin):
 
 class Participant_admin(ExportActionMixin, admin.ModelAdmin):
     search_fields = ('gender', "course", "year_of_study", "is_ambassador")
-    list_display = ['email','name','gender', "course", "year_of_study", "college"]
+    list_display = ['email','name','gender', "course", "year_of_study", "college","member_id"]
     exclude = ('password',)
 
 admin.site.register(Participant,Participant_admin)

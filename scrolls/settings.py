@@ -103,14 +103,11 @@ TEMPLATES = [
     },
 ]
 CORS_ALLOWED_ORIGINS = [
-    'https://web-production-f8d3.up.railway.app',
     'https://scrollsakgec.in',
-    'http://localhost:3000'
+    'http://localhost:3000',
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-f8d3.up.railway.app',
-    'https://scrollsakgec.in/',
-    'http://localhost:3000/'
+    'https://33db-112-196-163-54.ngrok-free.app'
 ]
 
 WSGI_APPLICATION = "scrolls.wsgi.application"

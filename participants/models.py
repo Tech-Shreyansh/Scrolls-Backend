@@ -153,7 +153,7 @@ def generate_member_id(sender, **kwargs):
 def generate_team_id(sender, **kwargs):
     team = kwargs['instance']
     size= team.size
-    if team.team_id == "":
+    if team.team_id == "" and size:
         team_id = "SC" + str((size*10000+team.id)*1000 + random.randint(1 , 999))
         Team.objects.filter(id=team.id).update(team_id=team_id)
         send_team_id(team.leader_id.email,team_id)
