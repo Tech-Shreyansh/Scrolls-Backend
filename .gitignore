@@ -2,3 +2,4 @@
 /env
 scrolls.sock
 db.sqlite3
+__pycache__/
