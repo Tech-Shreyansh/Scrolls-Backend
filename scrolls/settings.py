@@ -107,9 +107,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://33db-112-196-163-54.ngrok-free.app'
+    'http://localhost',
+    'http://127.0.0.1',
+    'https://*.silive.in'
 ]
-
 WSGI_APPLICATION = "scrolls.wsgi.application"
 
 
