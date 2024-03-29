@@ -12,4 +12,4 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/static
-
+    restart: always
