@@ -105,13 +105,13 @@ TEMPLATES = [
 CORS_ALLOWED_ORIGINS = [
     'https://scrollsakgec.in',
     'http://localhost:3000',
-    'https://scrolls-vert.vercel.app/'
+    'https://scrolls-vert.vercel.app'
 ]
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
     'https://*.silive.in'
-    'https://scrolls-vert.vercel.app/'
+    'https://scrolls-vert.vercel.app'
 ]
 WSGI_APPLICATION = "scrolls.wsgi.application"
 
