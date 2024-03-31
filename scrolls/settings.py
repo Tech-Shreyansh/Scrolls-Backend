@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'captcha',
     'participants.apps.ParticipantsConfig',
     'whitenoise.runserver_nostatic', 
+    'import_export',
 ]
 
 REST_FRAMEWORK = {
