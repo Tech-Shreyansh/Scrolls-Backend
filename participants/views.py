@@ -163,7 +163,7 @@ class Login_team(APIView):
             token = getTokens(user)
             return Response({'id':team[0].id,'msg':'Login Success', "tokens" : token}, status=status.HTTP_200_OK)
 
-        return Response({'msg':'Enter correct'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'msg':'Invalid Credentials.'}, status=status.HTTP_400_BAD_REQUEST)
 
 def get_member_details(member_id):
     if member_id is not None :
