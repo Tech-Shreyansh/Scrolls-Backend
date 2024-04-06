@@ -3,8 +3,8 @@ from .models import *
 from import_export.admin import ExportActionMixin
 
 class Team_admin(ExportActionMixin, admin.ModelAdmin):
-    search_fields = ('domain', "topic")
-    list_display = ['name',"domain","topic"]
+    search_fields = ('domain', "topic","team_id")
+    list_display = ['name',"domain","topic","team_id"]
     exclude = ('password',)
 
 class Participant_admin(ExportActionMixin, admin.ModelAdmin):
