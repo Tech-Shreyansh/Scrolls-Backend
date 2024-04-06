@@ -237,7 +237,6 @@ class Ca_dashboard(APIView):
                 'leader' : teams[i].leader_id.name
             }
             list_of_teams.append(team_object)
-        CA.member_id = None
         CA_serializer = participant_serializer(CA)
         context = CA_serializer.data
         context['list_of_teams'] = list_of_teams
