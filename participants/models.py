@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
 from django.core.validators import EmailValidator, MaxValueValidator , MinValueValidator 
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
-from .mail import *
+
 import random
 from cloudinary.models import CloudinaryField
 
@@ -137,23 +137,3 @@ class Registration_Check(models.Model):
     def __str__(self):
         return str(self.is_open)
 
-@receiver(post_save, sender = Participant)
-def generate_member_id(sender, **kwargs):
-    member = kwargs['instance']
-    yos = member.year_of_study
-    member_id = (yos*100000 + member.id)*1000 + random.randint(1 , 999)
-    referral = member.email[0:3]+str(member_id*100 + random.randint(1 , 99))
-    Participant.objects.filter(id=member.id).update(member_id=member_id,referral_code = referral)
-    if member.is_ambassador == True:
-        send_member_id(member.email,member_id,referral)
-    else:
-        send_member_id(member.email,member_id,1)
-
-@receiver(post_save, sender = Team)
-def generate_team_id(sender, **kwargs):
-    team = kwargs['instance']
-    size= team.size
-    if team.team_id == "" and size:
-        team_id = "SC" + str((size*10000+team.id)*1000 + random.randint(1 , 999))
-        Team.objects.filter(id=team.id).update(team_id=team_id)
-        send_team_id(team.leader_id.email,team_id)

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import *
+from .mail import *
 from .serializers import *
 from rest_framework import status
 from rest_framework.views import APIView
@@ -274,14 +275,14 @@ class Forgot_password(APIView):
                 if team_otp.exists():
                     if team_otp[0].time_created + timedelta(minutes=1) > timezone.now():
                         return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
-                send_otp(email,1)
+                send_otp(email,1,team[0].name)
                 return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
             if pk==0:
                 member_otp = OTP.objects.filter(email=participant[0],is_member=True)
                 if member_otp.exists():
                     if member_otp[0].time_created + timedelta(minutes=1) > timezone.now():
                         return Response({'msg':'resend OTP after one minute'},status=status.HTTP_400_BAD_REQUEST) 
-                send_otp(email,0)
+                send_otp(email,0,participant[0].name)
                 return Response({'msg':'check your mail for otp'}, status=status.HTTP_201_CREATED)
         else:
             return Response({'msg':'verify captcha'}, status=status.HTTP_406_NOT_ACCEPTABLE)
