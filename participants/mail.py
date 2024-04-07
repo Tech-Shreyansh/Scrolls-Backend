@@ -20,7 +20,6 @@ def send_member_id(email, member_id, check):
     </head>
     <body>
     <div>
-        Subject: {subject}<br><br>
         
         Dear {member_data.name},<br><br>
         
@@ -140,14 +139,14 @@ def send_team_id(team_id):
     message_plain = f"""
     Dear {team_data.leader_id.name},
     
-    Congratulations! Your team {team_data.name} has successfully completed the registration process 
+    Congratulations! Your team {team_data.name} has successfully completed the registration process <br>
     for SCROLLS'24. The unique Team ID is as follows:
     
     Team ID: {team_id}
     
     <ul>
     <li>The Team ID must be kept private for further use.</li>
-    <li>The team members can log in using the team leader's E-mail ID or this Team ID along with the team password to access the dashboard.</li>
+    <li>The team members can log in using the team leader's E-mail ID or this Team ID along <br>with the team password to access the dashboard.</li>
     <li>The dashboard will be the platform to submit your synopsis and final research paper.</li>
     </ul>
     
@@ -165,12 +164,12 @@ def send_team_id(team_id):
     <body>
     <div>
     <p>Dear {team_data.leader_id.name},</p>
-    <p>Congratulations! Your team {team_data.name} has successfully completed the registration process 
+    <p>Congratulations! Your team {team_data.name} has successfully completed the registration process <br>
     for SCROLLS'24. The unique Team ID is as follows:</p>
     <p>Team ID: {team_id}</p>
     <ul>
     <li>The Team ID must be kept private for further use.</li>
-    <li>The team members can log in using the team leader's E-mail ID or this Team ID along with the team password to access the dashboard.</li>
+    <li>The team members can log in using the team leader's E-mail ID or this Team ID along <br>with the team password to access the dashboard.</li>
     <li>The dashboard will be the platform to submit your synopsis and final research paper.</li>
 </ul>
     <p>We are glad to have you on this riveting journey.</p>
