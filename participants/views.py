@@ -340,6 +340,6 @@ class SynopsisResultView(APIView):
     throttle_classes = [UserRateThrottle]
     
     def get(self, request):
-        teams = Team.objects.filter(is_admin=False)
+        teams = Team.objects.filter(is_admin=False,is_selected=True)
         serializer = SynopsisResultSerializer(teams, many=True)
         return Response(serializer.data)
