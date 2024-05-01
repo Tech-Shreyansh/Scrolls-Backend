@@ -12,4 +12,5 @@ urlpatterns = [
     path('team_dashboard/', Team_dashboard.as_view()),
     path('ca_dashboard/<int:pk>', Ca_dashboard.as_view()),
     path('check_registration/', Check_registration.as_view()),
+    path('results/',SynopsisResultView.as_view()),
 ]

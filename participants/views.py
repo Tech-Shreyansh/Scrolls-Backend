@@ -335,3 +335,11 @@ class Check_registration(APIView):
         if check[0].is_open == True:
             return Response({"msg":"Registration Is Open"}, status=status.HTTP_200_OK)
         return Response({"msg":"Registration will begin soon"}, status=status.HTTP_400_BAD_REQUEST)
+
+class SynopsisResultView(APIView):
+    throttle_classes = [UserRateThrottle]
+    
+    def get(self, request):
+        teams = Team.objects.filter(is_admin=False)
+        serializer = SynopsisResultSerializer(teams, many=True)
+        return Response(serializer.data)

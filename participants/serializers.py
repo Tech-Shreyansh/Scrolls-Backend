@@ -29,4 +29,16 @@ class team_serializer(ModelSerializer):
         }
         
 
-        
+class SynopsisResultSerializer(ModelSerializer):
+    leader_name = serializers.SerializerMethodField()
+    college_name = serializers.SerializerMethodField()
+
+    def get_leader_name(self, obj):
+        return obj.leader_id.name if obj.leader_id else None
+
+    def get_college_name(self, obj):
+        return obj.leader_id.college if obj.leader_id else None
+    
+    class Meta:
+        model = Team
+        fields = ["domain","team_id","name","college_name","topic","leader_name"]
